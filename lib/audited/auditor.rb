@@ -223,7 +223,6 @@ module Audited
 
       # List of attributes that are audited.
       def audited_attributes
-        debugger
         audited_attributes = attributes.except(*self.class.non_audited_columns)
         audited_attributes = redact_values(audited_attributes)
         audited_attributes = filter_encrypted_attrs(audited_attributes)
