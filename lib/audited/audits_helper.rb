@@ -102,7 +102,7 @@ module Audited
     end
 
     def humanize_changed_boolean(key, value, type, i18n_context)
-      if value.first && !value.last
+      if !value.first && value.last
         t(
           "audited.#{type}.update.changed.boolean.#{key}.enabled",
           default: "#{key.to_s.titleize} enabled.",
