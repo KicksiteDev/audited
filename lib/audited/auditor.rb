@@ -223,6 +223,7 @@ module Audited
 
       # List of attributes that are audited.
       def audited_attributes
+        debugger
         audited_attributes = attributes.except(*self.class.non_audited_columns)
         audited_attributes = redact_values(audited_attributes)
         audited_attributes = filter_encrypted_attrs(audited_attributes)
@@ -231,10 +232,11 @@ module Audited
 
       # Returns a list combined of record audits and associated audits.
       def own_and_associated_audits
-        base_query = Audited.audit_class.unscoped.left_joins(:audit_associations)
+        base_query = Audited.audit_class.unscoped
 
-        base_query.where(auditable: self)
-          .or(base_query.where(audit_associations: { associated: self }))
+        subquery = Audited::AuditAssociation.where(associated: self).select(:audit_id)
+
+        base_query.where(auditable: self).or(base_query.where("id IN (:subquery)", subquery: subquery))
       end
 
       # Combine multiple audits into one.
