@@ -235,7 +235,7 @@ module Audited
         other_query = Audited.audit_class
           .unscoped.joins(:audit_associations).where(audit_associations: { associated: self })
 
-        Audited.audit.class.from("((#{base_query.to_sql}) UNION (#{other_query.to_sql})) audits")
+        Audited.audit_class.from("((#{base_query.to_sql}) UNION (#{other_query.to_sql})) audits")
       end
 
       # Combine multiple audits into one.
