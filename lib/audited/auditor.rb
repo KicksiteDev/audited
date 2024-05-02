@@ -231,11 +231,11 @@ module Audited
 
       # Returns a list combined of record audits and associated audits.
       def own_and_associated_audits
-        base_query = Audited.audit_class.unscoped
+        base_query = Audited.audit_class.unscoped.where(auditable: self)
+        other_query = Audited.audit_class
+          .unscoped.joins(:audit_associations).where(audit_associations: { associated: self })
 
-        subquery = Audited::AuditAssociation.where(associated: self).select(:audit_id)
-
-        base_query.where(auditable: self).or(base_query.where("id IN (:subquery)", subquery: subquery))
+        Audited.audit.class.from("((#{base_query.to_sql}) UNION (#{other_query.to_sql})) audits")
       end
 
       # Combine multiple audits into one.
