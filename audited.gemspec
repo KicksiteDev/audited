@@ -24,11 +24,11 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = ">= 2.3.0"
 
-  gem.add_dependency("activerecord", ">= 5.2", "< 7.2")
-  gem.add_dependency("activesupport", ">= 5.2", "< 7.2")
+  gem.add_dependency("activerecord", ">= 5.2", "< 8.0")
+  gem.add_dependency("activesupport", ">= 5.2", "< 8.0")
 
   gem.add_development_dependency("appraisal")
-  gem.add_development_dependency("rails", ">= 5.2", "< 7.2")
+  gem.add_development_dependency("rails", ">= 5.2", "< 8.0")
   gem.add_development_dependency("rspec-rails")
   gem.add_development_dependency("rubocop")
   gem.add_development_dependency("rubocop-shopify")
