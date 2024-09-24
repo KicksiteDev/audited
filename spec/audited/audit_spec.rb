@@ -216,9 +216,9 @@ describe Audited::Audit do
     end
 
     it "should return through the humanized_path method on auditable" do
-      u = Models::ActiveRecord::User.create(username: "joe")
+      u = Models::ActiveRecord::Driver.create(name: "Joe")
 
-      expect(u.humanized_path).to(eq("/person/joe"))
+      expect(u.audits.first.humanized_path_method).to(eq("/drivers/Joe"))
     end
   end
 

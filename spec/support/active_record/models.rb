@@ -21,10 +21,6 @@ module Models
       def name=(val)
         write_attribute(:name, CGI.escapeHTML(val))
       end
-
-      def humanized_path
-        Rails.application.routes.url_helpers.person_path(id)
-      end
     end
 
     class UserExceptPassword < ::ActiveRecord::Base
@@ -173,6 +169,10 @@ module Models
       has_many :vehicles, class_name: "Vehicle"
 
       audited
+
+      def humanized_path
+        "/drivers/#{name}"
+      end
     end
 
     class Vehicle < ::ActiveRecord::Base
