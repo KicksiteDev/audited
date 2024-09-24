@@ -142,7 +142,11 @@ module Audited
     def humanized_path_method
       @auditable_class ||= auditable_type.constantize
 
-      @auditable_class.humanize_audit_options[:path_method]
+      if auditable.respond_to?(:humanized_path)
+        auditable.humanized_path
+      else
+        @auditable_class.humanize_audit_options[:path_method]
+      end
     end
 
     def humanizable_audited_changes

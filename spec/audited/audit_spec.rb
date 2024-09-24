@@ -209,10 +209,16 @@ describe Audited::Audit do
   end
 
   describe "#humanized_path_method" do
-    it "should return the defined humanized path method" do
+    it "should return the defined path_method option" do
       u = Models::ActiveRecord::User.create(name: "Joe")
 
       expect(u.audits.first.humanized_path_method).to(eq("person_path"))
+    end
+
+    it "should return through the humanized_path method on auditable" do
+      u = Models::ActiveRecord::User.create(username: "joe")
+
+      expect(u.humanized_path).to(eq("/person/joe"))
     end
   end
 
