@@ -171,7 +171,11 @@ module Models
       audited
 
       def humanized_path
-        "/drivers/#{name}"
+        :driver_path
+      end
+
+      def humanized_path_options
+        { id: name, type: :driver }
       end
     end
 

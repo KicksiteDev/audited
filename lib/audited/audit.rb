@@ -149,6 +149,14 @@ module Audited
       end
     end
 
+    def humanized_path_options
+      if auditable.respond_to?(:humanized_path_options)
+        auditable.humanized_path_options
+      else
+        { id: auditable_id }
+      end
+    end
+
     def humanizable_audited_changes
       return audited_changes.symbolize_keys if skip_humanizing_attributes.blank?
 
