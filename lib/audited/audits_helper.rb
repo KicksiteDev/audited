@@ -11,7 +11,7 @@ module Audited
         {
           identifier: link_to(
             audit.humanized_identifier,
-            send(audit.humanized_path_method, id: audit.auditable_id),
+            send(audit.humanized_path_method, **audit.humanized_path_options),
             target: :_blank,
             rel: "noopener noreferrer",
           ),
