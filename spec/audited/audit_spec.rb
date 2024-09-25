@@ -218,7 +218,23 @@ describe Audited::Audit do
     it "should return through the humanized_path method on auditable" do
       u = Models::ActiveRecord::Driver.create(name: "Joe")
 
-      expect(u.audits.first.humanized_path_method).to(eq("/drivers/Joe"))
+      expect(u.audits.first.humanized_path_method).to(eq(:driver_path))
+    end
+  end
+
+  describe "#humanized_path_options" do
+    it "should return auditable#id by default" do
+      u = Models::ActiveRecord::User.create(name: "Joe")
+      options = u.audits.first.humanized_path_options
+
+      expect(options[:id]).to(eq(u.id))
+    end
+
+    it "should return through the humanized_path_options method on auditable" do
+      u = Models::ActiveRecord::Driver.create(name: "Joe")
+      options = u.audits.first.humanized_path_options
+
+      expect(options[:id]).to(eq("Joe"))
     end
   end
 
