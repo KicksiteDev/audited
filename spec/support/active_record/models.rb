@@ -169,6 +169,10 @@ module Models
       has_many :vehicles, class_name: "Vehicle"
 
       audited
+
+      def humanized_path
+        "/drivers/#{name}"
+      end
     end
 
     class Vehicle < ::ActiveRecord::Base
