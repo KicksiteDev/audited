@@ -7,7 +7,7 @@ module Audited
 
       audited_changes = audit.humanizable_audited_changes
 
-      i18n_context = if respond_to?(audit.humanized_path_method)
+      i18n_context = if respond_to?(audit.humanized_path_method) && audit.auditable.present?
         {
           identifier: link_to(
             audit.humanized_identifier,
