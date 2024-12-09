@@ -124,9 +124,9 @@ module Audited
     def humanized_identifier
       @auditable_class ||= auditable_type.constantize
 
-      return "[deleted]" if auditable.blank?
-
       method = @auditable_class.humanize_audit_options[:with]
+
+      return audited_changes[method.to_s].presence || "[deleted]" if auditable.blank?
 
       return unless auditable.respond_to?(method)
 
