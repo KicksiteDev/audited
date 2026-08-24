@@ -5,7 +5,8 @@ module Audited
     def humanize_audit(audit)
       downcased_type = audit.auditable_type.underscore
 
-      audited_changes = audit.humanizable_audited_changes
+      enums = audited_enums(audit)
+      audited_changes = humanize_enum_values(audit.humanizable_audited_changes, enums)
 
       i18n_context = if respond_to?(audit.humanized_path_method) && audit.auditable.present?
         {
@@ -24,7 +25,7 @@ module Audited
       when "create"
         humanize_create(audited_changes, downcased_type, i18n_context)
       when "update"
-        humanize_update(audited_changes, downcased_type, i18n_context)
+        humanize_update(audited_changes, downcased_type, i18n_context, enums)
       when "destroy"
         humanize_destroy(audited_changes, downcased_type, i18n_context)
       end
@@ -33,6 +34,30 @@ module Audited
     end
 
     private
+
+    def audited_enums(audit)
+      klass = audit.auditable_type.safe_constantize
+      return {} unless klass.respond_to?(:defined_enums)
+
+      klass.defined_enums
+    end
+
+    def humanize_enum_values(audited_changes, enums)
+      return audited_changes if enums.empty?
+
+      audited_changes.to_h do |key, value|
+        mapping = enums[key.to_s]
+        next [ key, value ] if mapping.nil?
+
+        [ key, humanize_enum_value(value, mapping) ]
+      end
+    end
+
+    def humanize_enum_value(value, mapping)
+      return mapping.key(value) || value unless value.is_a?(Array)
+
+      value.map { |element| mapping.key(element) || element }
+    end
 
     def humanize_create(audited_changes, type, i18n_context)
       t(
@@ -52,7 +77,7 @@ module Audited
       )
     end
 
-    def humanize_update(audited_changes, type, i18n_context)
+    def humanize_update(audited_changes, type, i18n_context, enums)
       array = audited_changes.map do |k, v|
         if v.first.is_a?(TrueClass) || v.first.is_a?(FalseClass) || v.last.is_a?(TrueClass) || v.last.is_a?(FalseClass)
           next humanize_changed_boolean(k, v, type, i18n_context)
@@ -67,7 +92,7 @@ module Audited
         end
 
         if first_present && last_present
-          humanize_changed(k, v, type, i18n_context)
+          humanize_changed(k, v, type, i18n_context, enums)
         elsif !first_present && last_present
           t(
             "audited.#{type}.update.added.#{k}",
@@ -88,17 +113,28 @@ module Audited
       array.flatten
     end
 
-    def humanize_changed(key, value, type, i18n_context)
+    def humanize_changed(key, value, type, i18n_context, enums)
       return humanize_changed_array(key, value, type, i18n_context) if value.first.is_a?(Array)
-      return humanize_changed_hash(key, value, type, i18n_context) if value.first.is_a?(Hash)
+      return humanize_changed_hash(key, value, type, i18n_context, enums) if value.first.is_a?(Hash)
+
+      i18n_key, default = humanize_changed_lookup(key, value, type, enums)
 
       t(
-        "audited.#{type}.update.changed.#{key}",
+        i18n_key,
         from: value.first,
         to: value.last,
-        default: "#{key.to_s.titleize} was changed from #{value.first} to #{value.last}",
+        default: default,
         **i18n_context,
       )
+    end
+
+    def humanize_changed_lookup(key, value, type, enums)
+      fallback = "#{key.to_s.titleize} was changed from #{value.first} to #{value.last}"
+      generic = :"audited.#{type}.update.changed.#{key}"
+
+      return [ generic, fallback ] unless enums.key?(key.to_s)
+
+      [ :"#{generic}.#{value.last}", [ generic, fallback ] ]
     end
 
     def humanize_changed_boolean(key, value, type, i18n_context)
@@ -144,7 +180,7 @@ module Audited
       changes
     end
 
-    def humanize_changed_hash(key, value, type, i18n_context)
+    def humanize_changed_hash(key, value, type, i18n_context, enums)
       changes = {}
 
       value.first.each do |k, v|
@@ -159,7 +195,7 @@ module Audited
         changes[k] = [ nil, v ]
       end
 
-      humanize_update(changes, type, i18n_context)
+      humanize_update(changes, type, i18n_context, enums)
     end
   end
 end
