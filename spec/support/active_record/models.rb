@@ -147,6 +147,12 @@ module Models
       enum status: { active: 0, reliable: 1, banned: 2 }
     end
 
+    class OwnerWithAssociatedCompanies < ::ActiveRecord::Base
+      self.table_name = "users"
+      has_many :companies, class_name: "OwnedCompany", foreign_key: "owner_id"
+      audited associated_with: :companies
+    end
+
     class OwnedCompany < ::ActiveRecord::Base
       self.table_name = "companies"
       belongs_to :owner, class_name: "Owner", touch: true

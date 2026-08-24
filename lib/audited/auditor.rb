@@ -427,7 +427,7 @@ module Audited
           run_callbacks(:audit) {
             audit = audits.create(attrs)
 
-            audit.audit_associations << all_audit_associations unless all_audit_associations.nil?
+            audit.audit_associations << all_audit_associations
 
             combine_audits_if_needed if attrs[:action] != "create"
             audit
@@ -464,9 +464,21 @@ module Audited
       end
 
       def all_audit_associations
-        audit_associated_with.map do |associated|
-          Audited::AuditAssociation.new(associated: send(associated)) if send(associated).present?
-        end.compact
+        audit_associated_with.flat_map do |associated|
+          Array.wrap(audit_associated_records(associated)).map do |record|
+            Audited::AuditAssociation.new(associated: record)
+          end
+        end
+      end
+
+      # Collections are read through a fresh scope rather than the association
+      # proxy, whose cache an earlier audit on this instance may have already
+      # populated and left stale.
+      def audit_associated_records(name)
+        reflection = self.class.reflect_on_association(name)
+        return send(name) unless reflection&.collection?
+
+        association(name).scope
       end
 
       CALLBACKS.each do |attr_name|
