@@ -684,6 +684,41 @@ describe Audited::Auditor do
     end
   end
 
+  describe "associated with a collection" do
+    let!(:owner) { Models::ActiveRecord::OwnerWithAssociatedCompanies.create!(name: "Owner") }
+    let!(:first_company) { Models::ActiveRecord::OwnedCompany.create!(name: "First", owner_id: owner.id) }
+    let!(:second_company) { Models::ActiveRecord::OwnedCompany.create!(name: "Second", owner_id: owner.id) }
+
+    it "should store every record in the association" do
+      owner.update!(name: "Renamed")
+
+      expect(owner.audits.last.associates).to(contain_exactly(first_company, second_company))
+    end
+
+    it "should list the audit on each associated record" do
+      owner.update!(name: "Renamed")
+
+      expect(first_company.associated_audits.last.auditable).to(eq(owner))
+      expect(second_company.associated_audits.last.auditable).to(eq(owner))
+    end
+
+    it "should store records added since an earlier audit on the same instance" do
+      fresh_owner = Models::ActiveRecord::OwnerWithAssociatedCompanies.create!(name: "Fresh")
+      late_company = Models::ActiveRecord::OwnedCompany.create!(name: "Late", owner_id: fresh_owner.id)
+
+      fresh_owner.update!(name: "Renamed")
+
+      expect(fresh_owner.audits.last.associates).to(contain_exactly(late_company))
+    end
+
+    it "should store nothing when the association is empty" do
+      empty_owner = Models::ActiveRecord::OwnerWithAssociatedCompanies.create!(name: "Empty")
+      empty_owner.update!(name: "Still empty")
+
+      expect(empty_owner.audits.last.associates).to(be_empty)
+    end
+  end
+
   describe "audit associated attribute" do
     let!(:driver) { Models::ActiveRecord::Driver.create!(name: "Driver") }
     let!(:driver_2) { Models::ActiveRecord::Driver.create!(name: "Driver_2") }
